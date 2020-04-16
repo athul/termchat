@@ -1,4 +1,4 @@
-package reader
+package msg
 
 import (
 	"bufio"
@@ -6,6 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
+	"net/http"
 	"os"
 	"sync"
 
@@ -33,13 +35,12 @@ var (
 
 func init() {
 	flag.StringVar(&origin, "origin", "http://localhost/", "origin of WebSocket client")
-	flag.StringVar(&url, "url", "ws://localhost:1337/ws", "WebSocket server address to connect to")
+	flag.StringVar(&url, "url", "ws://localhost:8080/ws", "WebSocket server address to connect to")
 	flag.StringVar(&protocol, "protocol", "", "WebSocket subprotocol")
 	flag.BoolVar(&insecureSkipVerify, "insecureSkipVerify", false, "Skip TLS certificate verification")
 	flag.BoolVar(&displayHelp, "help", false, "Display help information about wsd")
 	flag.BoolVar(&displayVersion, "version", false, "Display version number")
 }
-
 func inLoop(ws *websocket.Conn, errors chan<- error, in chan<- []byte) {
 	var msg = make([]byte, 512)
 
@@ -98,7 +99,8 @@ func dial(url, protocol, origin string) (ws *websocket.Conn, err error) {
 	return websocket.DialConfig(config)
 }
 
-func main() {
+//RunMessenger runs the messaging server
+func RunMessenger() {
 	flag.Parse()
 
 	if displayVersion {
@@ -130,6 +132,19 @@ func main() {
 
 	wg.Add(3)
 
+	wg.Wait()
+}
+func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client.hub.register <- client
+
+	// Allow collection of memory referenced by the caller by doing all work in
+	// new goroutines.
 	errors := make(chan error)
 	in := make(chan []byte)
 	out := make(chan []byte)
@@ -150,6 +165,4 @@ func main() {
 		out <- []byte(scanner.Text())
 		fmt.Print("> ")
 	}
-
-	wg.Wait()
 }

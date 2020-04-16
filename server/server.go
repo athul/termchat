@@ -37,7 +37,7 @@ func setupRoutes() {
 
 // StartServer starts the ws server
 func StartServer() {
-	fmt.Println("Hello World")
+	log.Println("Server Started at port 8080")
 	setupRoutes()
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
@@ -50,7 +50,7 @@ func reader(conn *websocket.Conn) {
 			return
 		}
 		// print out that message for clarity
-		fmt.Println(string(p))
+		log.Println(string(p))
 
 		if err := conn.WriteMessage(messageType, p); err != nil {
 			log.Println(err)
