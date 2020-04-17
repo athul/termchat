@@ -1,5 +1,8 @@
-package msg
+package main
 
+import wss "github.com/gorilla/websocket"
+
+//Hub data type
 type Hub struct {
 	// Registered clients.
 	clients map[*Client]bool
@@ -14,7 +17,19 @@ type Hub struct {
 	unregister chan *Client
 }
 
-func newHub() *Hub {
+//Client dtaa
+type Client struct {
+	hub *Hub
+
+	// The websocket connection.
+	conn *wss.Conn
+
+	// Buffered channel of outbound messages.
+	send chan []byte
+}
+
+//NewHub instantiates a new Hub struct
+func NewHub() *Hub {
 	return &Hub{
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
@@ -23,7 +38,8 @@ func newHub() *Hub {
 	}
 }
 
-func (h *Hub) run() {
+//Run startes the hub
+func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.register:

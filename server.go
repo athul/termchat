@@ -1,10 +1,11 @@
-package server
+package main
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/athul/termchat/client"
 	"github.com/gorilla/websocket"
 )
 
@@ -17,26 +18,34 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Home Page")
 }
 
-func wsEndpoint(w http.ResponseWriter, r *http.Request) {
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
-	// upgrade this connection to a WebSocket
-	// connection
-	ws, err := upgrader.Upgrade(w, r, nil)
+func wsEndpoint(hub *client.Hub, w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
+		return
 	}
-	reader(ws)
+	client := &client.Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client.hub.register <- client
+
+	// Allow collection of memory referenced by the caller by doing all work in
+	// new goroutines.
+	go client.writePump()
+	go client.readPump()
+	reader(conn)
 
 }
 
 func setupRoutes() {
+	hub := newHub()
+	go hub.run()
 	http.HandleFunc("/", homePage)
-	http.HandleFunc("/ws", wsEndpoint)
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		wsEndpoint(hub, w, r)
+	})
 }
 
 // StartServer starts the ws server
-func StartServer() {
+func main() {
 	log.Println("Server Started at port 8080")
 	setupRoutes()
 	log.Fatal(http.ListenAndServe(":8080", nil))
