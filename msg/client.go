@@ -1,4 +1,4 @@
-package main
+package msg
 
 import wss "github.com/gorilla/websocket"
 

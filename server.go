@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/athul/termchat/client"
+	"github.com/athul/termchat/msg"
 	"github.com/gorilla/websocket"
 )
 
@@ -18,13 +18,13 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Home Page")
 }
 
-func wsEndpoint(hub *client.Hub, w http.ResponseWriter, r *http.Request) {
+func wsEndpoint(hub *msg.Hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	client := &client.Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client := &msg.Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
 	client.hub.register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in
@@ -36,7 +36,7 @@ func wsEndpoint(hub *client.Hub, w http.ResponseWriter, r *http.Request) {
 }
 
 func setupRoutes() {
-	hub := newHub()
+	hub := msg.newHub()
 	go hub.run()
 	http.HandleFunc("/", homePage)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
