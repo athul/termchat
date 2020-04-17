@@ -59,7 +59,7 @@ func printErrors(errors <-chan error) {
 
 func printReceivedMessages(in <-chan []byte) {
 	for msg := range in {
-		fmt.Printf("\r< %s\n> ", cyan(string(msg)))
+		fmt.Printf("\r<  %s\n> ", cyan(string(msg)))
 	}
 }
 
@@ -71,8 +71,18 @@ func outLoop(ws *websocket.Conn, out <-chan []byte, errors chan<- error) {
 		}
 	}
 }
+func getname() string {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Enter your Name:\t")
+	for {
+		text, _ := reader.ReadString('\n')
+		return text + ": "
+	}
+
+}
 
 func runner() {
+	name := getname()
 	flag.Parse()
 	var d websocket.Dialer
 	header := make(http.Header)
@@ -107,7 +117,7 @@ func runner() {
 
 	fmt.Print("> ")
 	for scanner.Scan() {
-		out <- []byte(scanner.Text())
+		out <- []byte(magenta(name) + scanner.Text())
 
 		fmt.Print("> ")
 	}

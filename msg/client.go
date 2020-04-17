@@ -19,6 +19,8 @@ type Hub struct {
 
 //Client dtaa
 type Client struct {
+	name string
+
 	hub *Hub
 
 	// The websocket connection.

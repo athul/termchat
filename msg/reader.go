@@ -2,7 +2,6 @@ package msg
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -115,7 +114,7 @@ func reader(conn *websocket.Conn) {
 			return
 		}
 		// print out that message for clarity
-		fmt.Println(string(p))
+		log.Println(string(p))
 
 		if err := conn.WriteMessage(messageType, p); err != nil {
 			log.Println(err)
