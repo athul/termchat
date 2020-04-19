@@ -7,10 +7,12 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 var (
@@ -58,8 +60,10 @@ func printErrors(errors <-chan error) {
 }
 
 func printReceivedMessages(in <-chan []byte) {
+	w, _, _ := terminal.GetSize(0)
+
 	for msg := range in {
-		fmt.Printf("\r<  %s\n> ", cyan(string(msg)))
+		fmt.Printf("\r< %s 	"+toRight("You >", w), string(msg))
 	}
 }
 
@@ -73,12 +77,11 @@ func outLoop(ws *websocket.Conn, out <-chan []byte, errors chan<- error) {
 }
 func getname() string {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter your Name:\t")
+	fmt.Print("Enter your Name:  ")
 	for {
 		text, _ := reader.ReadString('\n')
 		return text + ": "
 	}
-
 }
 
 func runner() {
@@ -115,12 +118,16 @@ func runner() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	fmt.Print("> ")
-	for scanner.Scan() {
-		out <- []byte(magenta(name) + scanner.Text())
+	fmt.Print(">")
 
-		fmt.Print("> ")
+	for scanner.Scan() {
+		resp := magenta(name) + cyan(scanner.Text())
+		out <- []byte(resp)
+
 	}
 
 	wg.Wait()
+}
+func toRight(s string, w int) string {
+	return fmt.Sprintf("%"+strconv.Itoa(w)+"s  ", s)
 }

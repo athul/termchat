@@ -21,8 +21,10 @@ func main() {
 	}
 	if replResponse == "Server" {
 		StartServer()
-	} else {
+	} else if replResponse == "Messaging" {
 		runner()
+	} else {
+		fmt.Print("Invalid Option")
 	}
 
 }
