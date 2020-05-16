@@ -1,6 +1,8 @@
 package msg
 
-import wss "github.com/gorilla/websocket"
+import (
+	wss "github.com/gorilla/websocket"
+)
 
 //Hub data type
 type Hub struct {
@@ -44,6 +46,7 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.register:
 			h.clients[client] = true
+			//log.Println("This triggered-connstart")
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)

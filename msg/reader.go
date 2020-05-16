@@ -15,7 +15,7 @@ var upgrader = websocket.Upgrader{
 }
 
 const (
-	writeWait      = 10 * time.Second
+	writeWait      = 70 * time.Second
 	pongWait       = 60 * time.Second
 	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 512
@@ -114,7 +114,7 @@ func reader(conn *websocket.Conn) {
 			return
 		}
 		// print out that message for clarity
-		log.Println(string(p))
+		//log.Println(string(p))
 
 		if err := conn.WriteMessage(messageType, p); err != nil {
 			log.Println(err)

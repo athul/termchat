@@ -5,10 +5,13 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
@@ -24,6 +27,7 @@ var (
 	yellow  = color.New(color.FgYellow).SprintFunc()
 	cyan    = color.New(color.FgCyan).SprintFunc()
 	wg      sync.WaitGroup
+	colors  = map[int]func(a ...interface{}) string{1: red, 2: magenta, 3: green, 4: yellow, 5: cyan}
 )
 
 func init() {
@@ -80,7 +84,8 @@ func getname() string {
 	fmt.Print("Enter your Name:  ")
 	for {
 		text, _ := reader.ReadString('\n')
-		return text + ": "
+		strings.TrimSpace(text)
+		return text
 	}
 }
 
@@ -117,17 +122,33 @@ func runner() {
 	go outLoop(ws, out, errors)
 
 	scanner := bufio.NewScanner(os.Stdin)
-
+	Logserver(fmt.Sprintf(`%s joined the Chat`, name))
+	fmt.Printf(`%s joined the Chat`, name)
 	fmt.Print(">")
-
+	namecolor := colors[selectRandom()]
 	for scanner.Scan() {
-		resp := magenta(name) + cyan(scanner.Text())
+		text := scanner.Text()
+		if text == "" {
+			return
+		}
+		resp := "[" + namecolor(name) + "]" + namecolor(text)
 		out <- []byte(resp)
-
 	}
-
 	wg.Wait()
 }
 func toRight(s string, w int) string {
 	return fmt.Sprintf("%"+strconv.Itoa(w)+"s  ", s)
+}
+func selectRandom() int {
+	rand.Seed(time.Now().Unix())
+	ints := []int{1, 2, 3, 4, 5}
+	randomIndex := rand.Intn(len(ints))
+	pick := ints[randomIndex]
+	Logserver(pick)
+	return pick
+}
+
+//Logserver Prints to the Server Rather than terminal
+func Logserver(a ...interface{}) {
+	fmt.Println(green(a...))
 }

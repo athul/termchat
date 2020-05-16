@@ -18,7 +18,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Home Page")
+	fmt.Fprintf(w, "Welcome to TermChat, Chat from your terminal with Websockets")
 }
 
 func setupRoutes() {
