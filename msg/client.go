@@ -1,6 +1,10 @@
 package msg
 
 import (
+	"log"
+	"strconv"
+
+	//tc "github.com/athul/termchat"
 	wss "github.com/gorilla/websocket"
 )
 
@@ -40,13 +44,17 @@ func NewHub() *Hub {
 	}
 }
 
+//cName=fmt.Sprintf(`%s joined`, tc.ClientName)
+var clients = 0
+
 //Run startes the hub
 func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.register:
 			h.clients[client] = true
-			//log.Println("This triggered-connstart")
+			clients++
+			log.Printf("Server join New, Total Clients are " + strconv.Itoa(clients))
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)

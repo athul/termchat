@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/athul/termchat/msg"
 )
 
 var prompt = &survey.Select{
@@ -20,9 +21,9 @@ func main() {
 		return
 	}
 	if replResponse == "Server" {
-		StartServer()
+		msg.StartServer()
 	} else if replResponse == "Messaging" {
-		runner()
+		msg.Runner()
 	} else {
 		fmt.Print("Invalid Option")
 	}

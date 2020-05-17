@@ -1,4 +1,4 @@
-package main
+package msg
 
 import (
 	"bufio"
@@ -27,7 +27,8 @@ var (
 	yellow  = color.New(color.FgYellow).SprintFunc()
 	cyan    = color.New(color.FgCyan).SprintFunc()
 	wg      sync.WaitGroup
-	colors  = map[int]func(a ...interface{}) string{1: red, 2: magenta, 3: green, 4: yellow, 5: cyan}
+	//ClientName is the Name of the Client that is exported
+	colors = map[int]func(a ...interface{}) string{1: red, 2: magenta, 3: green, 4: yellow, 5: cyan}
 )
 
 func init() {
@@ -83,13 +84,14 @@ func getname() string {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter your Name:  ")
 	for {
-		text, _ := reader.ReadString('\n')
-		strings.TrimSpace(text)
-		return text
+		ClientName, _ := reader.ReadString('\n')
+		strings.TrimSpace(ClientName)
+		return ClientName
 	}
 }
 
-func runner() {
+// Runner starts the messaging client
+func Runner() {
 	name := getname()
 	flag.Parse()
 	var d websocket.Dialer
@@ -122,7 +124,7 @@ func runner() {
 	go outLoop(ws, out, errors)
 
 	scanner := bufio.NewScanner(os.Stdin)
-	Logserver(fmt.Sprintf(`%s joined the Chat`, name))
+	//Logserver(fmt.Sprintf(`%s joined the Chat`, name))
 	fmt.Printf(`%s joined the Chat`, name)
 	fmt.Print(">")
 	namecolor := colors[selectRandom()]
@@ -131,7 +133,7 @@ func runner() {
 		if text == "" {
 			return
 		}
-		resp := "[" + namecolor(name) + "]" + namecolor(text)
+		resp := fmt.Sprintf(`[%s] %s`, namecolor(name), namecolor(text))
 		out <- []byte(resp)
 	}
 	wg.Wait()
@@ -144,7 +146,7 @@ func selectRandom() int {
 	ints := []int{1, 2, 3, 4, 5}
 	randomIndex := rand.Intn(len(ints))
 	pick := ints[randomIndex]
-	Logserver(pick)
+	//Logserver(pick)
 	return pick
 }
 
