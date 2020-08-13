@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -60,6 +61,7 @@ func printErrors(errors <-chan error) {
 			os.Exit(0)
 		} else {
 			fmt.Printf("\rerr %v\n> ", red(err))
+			os.Exit(0)
 		}
 	}
 }
@@ -68,7 +70,7 @@ func printReceivedMessages(in <-chan []byte) {
 	w, _, _ := terminal.GetSize(0)
 
 	for msg := range in {
-		fmt.Printf("\r< %s 	"+toRight("You >", w), string(msg))
+		fmt.Printf("\r< %s"+toRight(">", w), string(msg))
 	}
 }
 
@@ -83,11 +85,17 @@ func outLoop(ws *websocket.Conn, out <-chan []byte, errors chan<- error) {
 func getname() string {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter your Name:  ")
-	for {
+	ClientName, _ := reader.ReadString('\n')
+	if ClientName == "" {
+		fmt.Println("You need to have a name to join the Chat")
 		ClientName, _ := reader.ReadString('\n')
-		strings.TrimSpace(ClientName)
+		log.Println(ClientName)
 		return ClientName
 	}
+	ClientName = strings.TrimSpace(ClientName)
+	log.Println(ClientName)
+	return ClientName
+
 }
 
 // Runner starts the messaging client
@@ -125,16 +133,18 @@ func Runner() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 	//Logserver(fmt.Sprintf(`%s joined the Chat`, name))
-	fmt.Printf(`%s joined the Chat`, name)
-	fmt.Print(">")
+	fmt.Printf("%s joined the Chat\n", name)
+	fmt.Printf("[%s]>", name)
 	namecolor := colors[selectRandom()]
 	for scanner.Scan() {
 		text := scanner.Text()
 		if text == "" {
-			return
+			// out <- []byte(fmt.Sprintf(`[%s] %s`, namecolor(name), "---nil---"))
+			fmt.Printf(`        >`)
+		} else {
+			resp := fmt.Sprintf(`[%s] %s`, strings.TrimSpace(namecolor(name)), namecolor(text))
+			out <- []byte(resp)
 		}
-		resp := fmt.Sprintf(`[%s] %s`, namecolor(name), namecolor(text))
-		out <- []byte(resp)
 	}
 	wg.Wait()
 }
@@ -146,11 +156,11 @@ func selectRandom() int {
 	ints := []int{1, 2, 3, 4, 5}
 	randomIndex := rand.Intn(len(ints))
 	pick := ints[randomIndex]
-	//Logserver(pick)
+	// Logserver(pick)
 	return pick
 }
 
 //Logserver Prints to the Server Rather than terminal
 func Logserver(a ...interface{}) {
-	fmt.Println(green(a...))
+	log.Println(green(a...))
 }

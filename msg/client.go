@@ -56,6 +56,8 @@ func (h *Hub) Run() {
 			clients++
 			log.Printf("Server join New, Total Clients are " + strconv.Itoa(clients))
 		case client := <-h.unregister:
+			clients--
+			log.Printf("A Client Left, Total Clients are " + strconv.Itoa(clients))
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				close(client.send)
